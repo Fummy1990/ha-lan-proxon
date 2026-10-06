@@ -129,6 +129,15 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
     await hass.config_entries.async_reload(entry.entry_id)
 
 
+def get_device_by_identifier(registry: dr.DeviceRegistry, identifier: tuple[str, str], entry_id: str) -> dr.DeviceEntry | None:
+    """Look up a device by identifier on HA >= 2025.10 (async_get_device_by_identifier) and older cores."""
+    lookup = getattr(registry, "async_get_device_by_identifier", None)
+    if lookup is not None:
+        return lookup(identifier, entry_id)
+    device = registry.async_get_device(identifiers={identifier})
+    return device if device is not None and entry_id in device.config_entries else None
+
+
 def main_device_identifier(entry: ConfigEntry) -> tuple[str, str]:
     return (DOMAIN, entry.data[CONF_DEVICE_ID])
 
@@ -140,7 +149,7 @@ def room_device_identifier(entry: ConfigEntry, index: int) -> tuple[str, str]:
 def _register_devices(hass: HomeAssistant, entry: ConfigEntry, coordinator: ProxonCoordinator) -> None:
     """Create the main device and one device per connected room; apply area mapping."""
     registry = dr.async_get(hass)
-    legacy = registry.async_get_device_by_identifier((DOMAIN, entry.entry_id), entry.entry_id)
+    legacy = get_device_by_identifier(registry, (DOMAIN, entry.entry_id), entry.entry_id)
     if legacy:
         registry.async_remove_device(legacy.id)
     fw_main = coordinator.data.dp.get((0, 5))
