@@ -10,7 +10,7 @@ Set-up only needs the device ID and password from the access card; room controll
 to areas. Verified writes with automatic retries, weekly schedule editing, holiday mode.
 Entity names are available in German and English; this README is in German.
 
-Version 2.7.0 (06.10.2026). Grundlage: eine per Nabto-Mitschnitt verifizierte Adress-Tabelle
+Version 2.7.1 (06.10.2026). Grundlage: eine per Nabto-Mitschnitt verifizierte Adress-Tabelle
 sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Assistant 2026.9.
 
 ## Rechtliches und Haftung
@@ -32,7 +32,7 @@ sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Ass
 **Über HACS (empfohlen)**
 
 1. HACS → Integrationen → Menü (⋮) → *Benutzerdefinierte Repositories* →
-   `https://github.com/Fummy1990/hacs-proxon-fwt`, Typ *Integration* → Hinzufügen.
+   `https://github.com/Fummy1990/ha-lan-proxon`, Typ *Integration* → Hinzufügen.
 2. „Proxon FWT (LAN)" in HACS suchen → Herunterladen → Home Assistant neu starten.
 
 **Manuell**
