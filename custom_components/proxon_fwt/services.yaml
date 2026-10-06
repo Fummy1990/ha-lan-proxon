@@ -1,0 +1,22 @@
+copy_schedule_day:
+  fields:
+    source_day:
+      required: true
+      default: mo
+      selector:
+        select:
+          translation_key: weekday
+          options: [mo, di, mi, do, fr, sa, so]
+    target_days:
+      required: true
+      example: [di, mi, do, fr]
+      selector:
+        select:
+          multiple: true
+          translation_key: weekday
+          options: [mo, di, mi, do, fr, sa, so]
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: proxon_fwt

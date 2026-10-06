@@ -1,0 +1,227 @@
+# Proxon Zeitprogramm – Wochenübersicht + Bearbeitung je Tag
+# Einfügen: Dashboard → Bearbeiten → Karte hinzufügen → „Manuell“ → YAML einfügen.
+type: vertical-stack
+cards:
+  - type: entities
+    title: Zeitprogramm Lüftung – Woche
+    show_header_toggle: false
+    entities:
+      - entity: binary_sensor.proxon_fwt_zeitprogramm_luftung_aktiv
+        name: Programm aktiv
+      - entity: sensor.proxon_zeitprogramm_montag
+        name: Montag
+      - entity: sensor.proxon_zeitprogramm_dienstag
+        name: Dienstag
+      - entity: sensor.proxon_zeitprogramm_mittwoch
+        name: Mittwoch
+      - entity: sensor.proxon_zeitprogramm_donnerstag
+        name: Donnerstag
+      - entity: sensor.proxon_zeitprogramm_freitag
+        name: Freitag
+      - entity: sensor.proxon_zeitprogramm_samstag
+        name: Samstag
+      - entity: sensor.proxon_zeitprogramm_sonntag
+        name: Sonntag
+  - type: entities
+    title: Montag
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_montag_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_montag_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_montag_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_montag_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_montag_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_montag_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_montag_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_montag_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_montag_phase_3_lufterstufe
+        name: Lüfterstufe
+  - type: entities
+    title: Dienstag
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_dienstag_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_dienstag_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_dienstag_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_dienstag_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_dienstag_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_dienstag_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_dienstag_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_dienstag_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_dienstag_phase_3_lufterstufe
+        name: Lüfterstufe
+  - type: entities
+    title: Mittwoch
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_mittwoch_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_mittwoch_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_mittwoch_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_mittwoch_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_mittwoch_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_mittwoch_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_mittwoch_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_mittwoch_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_mittwoch_phase_3_lufterstufe
+        name: Lüfterstufe
+  - type: entities
+    title: Donnerstag
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_donnerstag_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_donnerstag_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_donnerstag_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_donnerstag_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_donnerstag_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_donnerstag_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_donnerstag_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_donnerstag_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_donnerstag_phase_3_lufterstufe
+        name: Lüfterstufe
+  - type: entities
+    title: Freitag
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_freitag_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_freitag_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_freitag_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_freitag_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_freitag_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_freitag_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_freitag_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_freitag_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_freitag_phase_3_lufterstufe
+        name: Lüfterstufe
+  - type: entities
+    title: Samstag
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_samstag_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_samstag_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_samstag_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_samstag_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_samstag_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_samstag_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_samstag_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_samstag_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_samstag_phase_3_lufterstufe
+        name: Lüfterstufe
+  - type: entities
+    title: Sonntag
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - type: section
+        label: Phase 1
+      - entity: time.proxon_zeitprogramm_sonntag_phase_1_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_sonntag_phase_1_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_sonntag_phase_1_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 2
+      - entity: time.proxon_zeitprogramm_sonntag_phase_2_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_sonntag_phase_2_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_sonntag_phase_2_lufterstufe
+        name: Lüfterstufe
+      - type: section
+        label: Phase 3
+      - entity: time.proxon_zeitprogramm_sonntag_phase_3_beginn
+        name: Beginn
+      - entity: time.proxon_zeitprogramm_sonntag_phase_3_ende
+        name: Ende
+      - entity: select.proxon_zeitprogramm_sonntag_phase_3_lufterstufe
+        name: Lüfterstufe

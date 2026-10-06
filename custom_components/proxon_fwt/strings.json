@@ -1,0 +1,383 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Proxon FWT (LAN)",
+        "description": "Direct control over the local network, no manufacturer cloud. Discovered device: {discovered}. The device ID and password are printed on the manufacturer's access card. The client certificate is fetched automatically from the manufacturer portal once (sign-only) – afterwards everything runs directly over LAN. Leave the certificate field empty; it is only there to paste an existing certificate manually.",
+        "data": {
+          "device_id": "Device ID",
+          "password": "Password",
+          "host": "IP address",
+          "port": "Port",
+          "cert_pem": "Client certificate (PEM, optional)"
+        },
+        "data_description": {
+          "password": "From the access card – used once to fetch the certificate, not stored.",
+          "cert_pem": "Only fill this in if you already have a certificate. Otherwise leave empty."
+        }
+      },
+      "rooms": {
+        "title": "Assign room controllers",
+        "description": "Detected room controllers: {rooms}. Assign each controller to an area (optional; can be changed later in the options).",
+        "data": {
+          "area_0": "Area for room 0",
+          "area_1": "Area for room 1",
+          "area_2": "Area for room 2",
+          "area_3": "Area for room 3",
+          "area_4": "Area for room 4",
+          "area_5": "Area for room 5",
+          "area_6": "Area for room 6",
+          "area_7": "Area for room 7",
+          "area_8": "Area for room 8",
+          "area_9": "Area for room 9",
+          "area_10": "Area for room 10",
+          "area_11": "Area for room 11",
+          "area_12": "Area for room 12",
+          "area_13": "Area for room 13",
+          "area_14": "Area for room 14",
+          "area_15": "Area for room 15",
+          "area_16": "Area for room 16",
+          "area_17": "Area for room 17",
+          "area_18": "Area for room 18",
+          "area_19": "Area for room 19",
+          "area_20": "Area for room 20"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to open a Nabto session to the unit.",
+      "invalid_cert": "Certificate could not be parsed.",
+      "invalid_auth": "Device ID or password was rejected by the portal.",
+      "password_required": "Please enter the password or paste a certificate.",
+      "portal_unreachable": "The manufacturer portal is unreachable. Please check the internet connection.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This unit is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Proxon FWT – options",
+        "description": "Polling interval and room controller → area assignment. Detected rooms: {rooms}",
+        "data": {
+          "scan_interval": "Polling interval",
+          "area_0": "Area for room 0",
+          "area_1": "Area for room 1",
+          "area_2": "Area for room 2",
+          "area_3": "Area for room 3",
+          "area_4": "Area for room 4",
+          "area_5": "Area for room 5",
+          "area_6": "Area for room 6",
+          "area_7": "Area for room 7",
+          "area_8": "Area for room 8",
+          "area_9": "Area for room 9",
+          "area_10": "Area for room 10",
+          "area_11": "Area for room 11",
+          "area_12": "Area for room 12",
+          "area_13": "Area for room 13",
+          "area_14": "Area for room 14",
+          "area_15": "Area for room 15",
+          "area_16": "Area for room 16",
+          "area_17": "Area for room 17",
+          "area_18": "Area for room 18",
+          "area_19": "Area for room 19",
+          "area_20": "Area for room 20"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "t1_supply": {
+        "name": "T1 supply air"
+      },
+      "t3_fresh": {
+        "name": "T3 fresh air"
+      },
+      "t4_exhaust_out": {
+        "name": "T4 exhaust air"
+      },
+      "t7_extract": {
+        "name": "T7 extract air"
+      },
+      "zone2_current": {
+        "name": "Zone 2 temperature"
+      },
+      "t12_pre_condenser": {
+        "name": "T12 before condenser"
+      },
+      "t13_compressor_main": {
+        "name": "T13 compressor (main)"
+      },
+      "t14_suction_gas": {
+        "name": "T14 suction gas after condenser"
+      },
+      "p14_low_pressure": {
+        "name": "P14 evaporator low pressure"
+      },
+      "p19_defrost_diff": {
+        "name": "P19 defrost pressure difference"
+      },
+      "operating_hours": {
+        "name": "Operating hours"
+      },
+      "filter_runtime": {
+        "name": "Filter runtime"
+      },
+      "filter_interval": {
+        "name": "Filter change interval"
+      },
+      "damper_position": {
+        "name": "Damper position"
+      },
+      "valve_heating": {
+        "name": "Heating valve position"
+      },
+      "valve_preheat": {
+        "name": "Preheat valve position"
+      },
+      "valve_cooling": {
+        "name": "Cooling valve position"
+      },
+      "compressor_status": {
+        "name": "Compressor status"
+      },
+      "fan_status": {
+        "name": "Fan status"
+      },
+      "hp_relay_word": {
+        "name": "Heat pump relay word"
+      },
+      "rpm_supply": {
+        "name": "Supply fan speed"
+      },
+      "rpm_exhaust": {
+        "name": "Exhaust fan speed"
+      },
+      "fan_level_actual": {
+        "name": "Fan level actual"
+      },
+      "humidity": {
+        "name": "Extract air humidity"
+      },
+      "co2": {
+        "name": "CO₂ (raw)"
+      },
+      "compressor_rpm": {
+        "name": "Compressor speed"
+      },
+      "four_way_valve": {
+        "name": "Four-way valve"
+      },
+      "boost_remaining": {
+        "name": "Boost remaining time"
+      },
+      "water_middle": {
+        "name": "Hot water middle"
+      },
+      "water_bottom": {
+        "name": "Hot water bottom"
+      },
+      "t300_pre_evap": {
+        "name": "T300 before evaporator"
+      },
+      "t300_evap": {
+        "name": "T300 evaporator"
+      },
+      "t300_compressor": {
+        "name": "T300 compressor"
+      },
+      "t300_suction": {
+        "name": "T300 suction line"
+      },
+      "t300_fan_rpm": {
+        "name": "T300 fan"
+      },
+      "pv_mode": {
+        "name": "PV mode"
+      },
+      "pv_level": {
+        "name": "PV input level"
+      },
+      "boost_e1e2": {
+        "name": "Boost duration E1/E2"
+      },
+      "global_ptc": {
+        "name": "PTC enable global"
+      },
+      "firmware_main": {
+        "name": "Firmware main board"
+      },
+      "firmware_t300": {
+        "name": "Firmware T300"
+      },
+      "clock": {
+        "name": "Device clock"
+      },
+      "clock_offset": {
+        "name": "Clock offset"
+      },
+      "faults": {
+        "name": "Active fault words"
+      },
+      "last_write_error": {
+        "name": "Last write error"
+      },
+      "room_temperature": {
+        "name": "Temperature"
+      },
+      "schedule_day": {
+        "name": "{day}"
+      }
+    },
+    "binary_sensor": {
+      "bypass": {
+        "name": "Bypass"
+      },
+      "geothermal_relay": {
+        "name": "Geothermal"
+      },
+      "solenoid_valve": {
+        "name": "Solenoid valve"
+      },
+      "schedule_active": {
+        "name": "Ventilation schedule active"
+      },
+      "has_co2": {
+        "name": "CO₂ sensor present"
+      },
+      "fault": {
+        "name": "Fault"
+      },
+      "ptc_relay": {
+        "name": "PTC relay active"
+      },
+      "t300_compressor_relay": {
+        "name": "T300 compressor"
+      },
+      "t300_solar_relay": {
+        "name": "T300 solar"
+      },
+      "t300_heater_relay": {
+        "name": "Immersion heater active"
+      },
+      "t300_fan_relay": {
+        "name": "T300 fan"
+      },
+      "pv_enable": {
+        "name": "PV function enabled"
+      },
+      "pv_flag_heater": {
+        "name": "PV signal immersion heater"
+      },
+      "pv_flag_hp": {
+        "name": "PV signal heat pump"
+      }
+    },
+    "switch": {
+      "holiday": {
+        "name": "Holiday mode"
+      },
+      "cooling": {
+        "name": "Cooling enable"
+      },
+      "boost": {
+        "name": "Boost ventilation"
+      },
+      "heater_enable": {
+        "name": "Immersion heater enable"
+      },
+      "t300_mode": {
+        "name": "Hot water preparation (T300)"
+      },
+      "legionella": {
+        "name": "Legionella function"
+      },
+      "room_ptc": {
+        "name": "Electric heater (PTC)"
+      }
+    },
+    "number": {
+      "boost_duration": {
+        "name": "Boost ventilation duration"
+      },
+      "water_target": {
+        "name": "Hot water target temperature"
+      },
+      "zone2_target": {
+        "name": "Zone 2 target temperature"
+      },
+      "co2_limit": {
+        "name": "CO₂ limit"
+      },
+      "humidity_limit": {
+        "name": "Humidity limit"
+      },
+      "heater_target": {
+        "name": "Immersion heater target temperature"
+      }
+    },
+    "select": {
+      "mode": {
+        "name": "Operating mode"
+      },
+      "fan_level": {
+        "name": "Fan level"
+      },
+      "schedule_level": {
+        "name": "Phase {phase} fan level"
+      }
+    },
+    "time": {
+      "schedule_start": {
+        "name": "Phase {phase} start"
+      },
+      "schedule_end": {
+        "name": "Phase {phase} end"
+      }
+    },
+    "button": {
+      "schedule_copy_mo_workdays": {
+        "name": "Copy Monday → Tue–Fri"
+      },
+      "schedule_copy_mo_all": {
+        "name": "Copy Monday → all days"
+      }
+    }
+  },
+  "services": {
+    "copy_schedule_day": {
+      "name": "Copy schedule day",
+      "description": "Copies the three phases of one weekday to other weekdays (same rules as editing; days with a phase running right now are reported and skipped).",
+      "fields": {
+        "source_day": {
+          "name": "Source day",
+          "description": "Weekday whose schedule is copied."
+        },
+        "target_days": {
+          "name": "Target days",
+          "description": "Weekdays that receive the schedule."
+        },
+        "config_entry_id": {
+          "name": "Unit",
+          "description": "Optional, if several units are configured."
+        }
+      }
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "mo": "Monday",
+        "di": "Tuesday",
+        "mi": "Wednesday",
+        "do": "Thursday",
+        "fr": "Friday",
+        "sa": "Saturday",
+        "so": "Sunday"
+      }
+    }
+  }
+}

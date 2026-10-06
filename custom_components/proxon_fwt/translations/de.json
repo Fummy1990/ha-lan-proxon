@@ -1,0 +1,383 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Proxon FWT verbinden (LAN)",
+        "description": "Direkte Steuerung über das lokale Netzwerk, ohne Hersteller-Cloud. Gefundenes Gerät: {discovered}. Geräte-ID und Passwort stehen auf der Zugangskarte des Herstellers. Das Zertifikat wird einmalig automatisch beim Hersteller-Portal abgeholt (nur zum Signieren) – danach läuft alles direkt über LAN. Das Feld „Client-Zertifikat“ bleibt leer; es ist nur für den Fall gedacht, dass ein vorhandenes Zertifikat manuell eingetragen werden soll.",
+        "data": {
+          "device_id": "Geräte-ID",
+          "password": "Passwort",
+          "host": "IP-Adresse",
+          "port": "Port",
+          "cert_pem": "Client-Zertifikat (PEM, optional)"
+        },
+        "data_description": {
+          "password": "Von der Zugangskarte – wird nur einmalig zum Abholen des Zertifikats verwendet, nicht gespeichert.",
+          "cert_pem": "Nur ausfüllen, wenn bereits ein Zertifikat vorhanden ist. Sonst leer lassen."
+        }
+      },
+      "rooms": {
+        "title": "Raumregler zuordnen",
+        "description": "Erkannte Raumregler: {rooms}. Ordne jedem Regler einen Bereich zu (optional; später über die Optionen änderbar).",
+        "data": {
+          "area_0": "Bereich für Raum 0",
+          "area_1": "Bereich für Raum 1",
+          "area_2": "Bereich für Raum 2",
+          "area_3": "Bereich für Raum 3",
+          "area_4": "Bereich für Raum 4",
+          "area_5": "Bereich für Raum 5",
+          "area_6": "Bereich für Raum 6",
+          "area_7": "Bereich für Raum 7",
+          "area_8": "Bereich für Raum 8",
+          "area_9": "Bereich für Raum 9",
+          "area_10": "Bereich für Raum 10",
+          "area_11": "Bereich für Raum 11",
+          "area_12": "Bereich für Raum 12",
+          "area_13": "Bereich für Raum 13",
+          "area_14": "Bereich für Raum 14",
+          "area_15": "Bereich für Raum 15",
+          "area_16": "Bereich für Raum 16",
+          "area_17": "Bereich für Raum 17",
+          "area_18": "Bereich für Raum 18",
+          "area_19": "Bereich für Raum 19",
+          "area_20": "Bereich für Raum 20"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Es konnte keine Nabto-Verbindung zur Anlage aufgebaut werden.",
+      "invalid_cert": "Zertifikat konnte nicht gelesen werden.",
+      "invalid_auth": "Geräte-ID oder Passwort wurde vom Portal abgelehnt.",
+      "password_required": "Bitte Passwort eingeben oder ein Zertifikat einfügen.",
+      "portal_unreachable": "Das Hersteller-Portal ist nicht erreichbar. Bitte Internetverbindung prüfen.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Diese Anlage ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Proxon FWT – Optionen",
+        "description": "Abfrageintervall und Zuordnung der Raumregler zu Bereichen. Erkannte Räume: {rooms}",
+        "data": {
+          "scan_interval": "Abfrageintervall",
+          "area_0": "Bereich für Raum 0",
+          "area_1": "Bereich für Raum 1",
+          "area_2": "Bereich für Raum 2",
+          "area_3": "Bereich für Raum 3",
+          "area_4": "Bereich für Raum 4",
+          "area_5": "Bereich für Raum 5",
+          "area_6": "Bereich für Raum 6",
+          "area_7": "Bereich für Raum 7",
+          "area_8": "Bereich für Raum 8",
+          "area_9": "Bereich für Raum 9",
+          "area_10": "Bereich für Raum 10",
+          "area_11": "Bereich für Raum 11",
+          "area_12": "Bereich für Raum 12",
+          "area_13": "Bereich für Raum 13",
+          "area_14": "Bereich für Raum 14",
+          "area_15": "Bereich für Raum 15",
+          "area_16": "Bereich für Raum 16",
+          "area_17": "Bereich für Raum 17",
+          "area_18": "Bereich für Raum 18",
+          "area_19": "Bereich für Raum 19",
+          "area_20": "Bereich für Raum 20"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "t1_supply": {
+        "name": "T1 Zuluft"
+      },
+      "t3_fresh": {
+        "name": "T3 Frischluft"
+      },
+      "t4_exhaust_out": {
+        "name": "T4 Fortluft"
+      },
+      "t7_extract": {
+        "name": "T7 Abluft"
+      },
+      "zone2_current": {
+        "name": "Zone 2 Temperatur"
+      },
+      "t12_pre_condenser": {
+        "name": "T12 vor Kondensator"
+      },
+      "t13_compressor_main": {
+        "name": "T13 Kompressor (Haupt)"
+      },
+      "t14_suction_gas": {
+        "name": "T14 Sauggas nach Kondensator"
+      },
+      "p14_low_pressure": {
+        "name": "P14 ND Verdampfer"
+      },
+      "p19_defrost_diff": {
+        "name": "P19 Druckdifferenz Abtau"
+      },
+      "operating_hours": {
+        "name": "Betriebsstunden"
+      },
+      "filter_runtime": {
+        "name": "Filter Laufzeit"
+      },
+      "filter_interval": {
+        "name": "Filterwechselintervall"
+      },
+      "damper_position": {
+        "name": "Schieberposition"
+      },
+      "valve_heating": {
+        "name": "E-Ventil Heizung Position"
+      },
+      "valve_preheat": {
+        "name": "E-Ventil Vorwärme Position"
+      },
+      "valve_cooling": {
+        "name": "E-Ventil Kühlung Position"
+      },
+      "compressor_status": {
+        "name": "Status Kompressor"
+      },
+      "fan_status": {
+        "name": "Status Ventilatoren"
+      },
+      "hp_relay_word": {
+        "name": "WP-Relaiswort"
+      },
+      "rpm_supply": {
+        "name": "Drehzahl Zuluft"
+      },
+      "rpm_exhaust": {
+        "name": "Drehzahl Abluft"
+      },
+      "fan_level_actual": {
+        "name": "Lüfterstufe Ist"
+      },
+      "humidity": {
+        "name": "Luftfeuchte Abluft"
+      },
+      "co2": {
+        "name": "CO₂ (roh)"
+      },
+      "compressor_rpm": {
+        "name": "Kompressor Drehzahl"
+      },
+      "four_way_valve": {
+        "name": "Vierwegeventil"
+      },
+      "boost_remaining": {
+        "name": "Intensivlüftung Restzeit"
+      },
+      "water_middle": {
+        "name": "Warmwasser Mitte"
+      },
+      "water_bottom": {
+        "name": "Warmwasser Unten"
+      },
+      "t300_pre_evap": {
+        "name": "T300 vor Verdampfer"
+      },
+      "t300_evap": {
+        "name": "T300 Verdampfer"
+      },
+      "t300_compressor": {
+        "name": "T300 Kompressor"
+      },
+      "t300_suction": {
+        "name": "T300 Saugleitung"
+      },
+      "t300_fan_rpm": {
+        "name": "T300 Ventilator"
+      },
+      "pv_mode": {
+        "name": "PV-Modus"
+      },
+      "pv_level": {
+        "name": "PV-Eingangspegel"
+      },
+      "boost_e1e2": {
+        "name": "Intensivlüftung Dauer E1/E2"
+      },
+      "global_ptc": {
+        "name": "PTC-Freigabe global"
+      },
+      "firmware_main": {
+        "name": "Firmware Hauptplatine"
+      },
+      "firmware_t300": {
+        "name": "Firmware T300"
+      },
+      "clock": {
+        "name": "Geräteuhr"
+      },
+      "clock_offset": {
+        "name": "Uhrabweichung"
+      },
+      "faults": {
+        "name": "Fehlerwörter aktiv"
+      },
+      "last_write_error": {
+        "name": "Letzter Schreibfehler"
+      },
+      "room_temperature": {
+        "name": "Temperatur"
+      },
+      "schedule_day": {
+        "name": "{day}"
+      }
+    },
+    "binary_sensor": {
+      "bypass": {
+        "name": "Bypass"
+      },
+      "geothermal_relay": {
+        "name": "Erdwärme"
+      },
+      "solenoid_valve": {
+        "name": "Magnetventil"
+      },
+      "schedule_active": {
+        "name": "Zeitprogramm Lüftung aktiv"
+      },
+      "has_co2": {
+        "name": "CO₂-Sensor vorhanden"
+      },
+      "fault": {
+        "name": "Störung"
+      },
+      "ptc_relay": {
+        "name": "PTC-Relais aktiv"
+      },
+      "t300_compressor_relay": {
+        "name": "T300 Kompressor"
+      },
+      "t300_solar_relay": {
+        "name": "T300 Solar"
+      },
+      "t300_heater_relay": {
+        "name": "E-Heizstab aktiv"
+      },
+      "t300_fan_relay": {
+        "name": "T300 Ventilator"
+      },
+      "pv_enable": {
+        "name": "PV-Funktion freigegeben"
+      },
+      "pv_flag_heater": {
+        "name": "PV-Signal Heizstab"
+      },
+      "pv_flag_hp": {
+        "name": "PV-Signal Wärmepumpe"
+      }
+    },
+    "switch": {
+      "holiday": {
+        "name": "Urlaubsmodus"
+      },
+      "cooling": {
+        "name": "Kühlfreigabe"
+      },
+      "boost": {
+        "name": "Intensivlüftung"
+      },
+      "heater_enable": {
+        "name": "E-Heizstab Freigabe"
+      },
+      "t300_mode": {
+        "name": "Warmwasserbereitung (T300)"
+      },
+      "legionella": {
+        "name": "Legionellenfunktion"
+      },
+      "room_ptc": {
+        "name": "Elektroheizung (PTC)"
+      }
+    },
+    "number": {
+      "boost_duration": {
+        "name": "Intensivlüftung Dauer"
+      },
+      "water_target": {
+        "name": "Warmwasser Solltemperatur"
+      },
+      "zone2_target": {
+        "name": "Zone 2 Solltemperatur"
+      },
+      "co2_limit": {
+        "name": "Grenzwert CO₂"
+      },
+      "humidity_limit": {
+        "name": "Grenzwert Feuchte"
+      },
+      "heater_target": {
+        "name": "E-Heizstab Solltemperatur"
+      }
+    },
+    "select": {
+      "mode": {
+        "name": "Betriebsart"
+      },
+      "fan_level": {
+        "name": "Lüfterstufe"
+      },
+      "schedule_level": {
+        "name": "Phase {phase} Lüfterstufe"
+      }
+    },
+    "time": {
+      "schedule_start": {
+        "name": "Phase {phase} Beginn"
+      },
+      "schedule_end": {
+        "name": "Phase {phase} Ende"
+      }
+    },
+    "button": {
+      "schedule_copy_mo_workdays": {
+        "name": "Montag → Di–Fr übernehmen"
+      },
+      "schedule_copy_mo_all": {
+        "name": "Montag → alle Tage übernehmen"
+      }
+    }
+  },
+  "services": {
+    "copy_schedule_day": {
+      "name": "Zeitprogramm-Tag kopieren",
+      "description": "Überträgt die drei Phasen eines Wochentags auf andere Wochentage (gleiche Regeln wie beim Bearbeiten; Tage mit gerade laufender Phase werden gemeldet und übersprungen).",
+      "fields": {
+        "source_day": {
+          "name": "Quelltag",
+          "description": "Wochentag, dessen Zeitprogramm kopiert wird."
+        },
+        "target_days": {
+          "name": "Zieltage",
+          "description": "Wochentage, die das Zeitprogramm erhalten."
+        },
+        "config_entry_id": {
+          "name": "Anlage",
+          "description": "Optional, falls mehrere Anlagen eingerichtet sind."
+        }
+      }
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "mo": "Montag",
+        "di": "Dienstag",
+        "mi": "Mittwoch",
+        "do": "Donnerstag",
+        "fr": "Freitag",
+        "sa": "Samstag",
+        "so": "Sonntag"
+      }
+    }
+  }
+}
