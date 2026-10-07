@@ -50,7 +50,12 @@ from .const import (
     DP_VALVE_HEATING,
     DP_VALVE_PREHEAT,
     DP_ZONE2_CURRENT,
+    COUNTER_HOURS_PER_STEP,
+    DP_HEATER_MODULE_STATUS,
+    DP_OPERATION_MODE,
+    OPERATION_MODE_TEXT,
     SP_FILTER_INTERVAL,
+    SP_FILTER_LIFETIME_MONTHS,
     SP_FILTER_RUNTIME,
     SP_OPERATING_HOURS,
     DP_FAN_LEVEL_ACTUAL,
@@ -121,6 +126,43 @@ def _clock_offset(data: ProxonData) -> int | None:
     return round((dev - now).total_seconds() / 60)
 
 
+def _counter_hours(point: tuple[int, int]) -> Callable[[ProxonData], int | None]:
+    """Hour counters are stored in 2-hour steps (verified: +1 every 2 h)."""
+    def value(data: ProxonData) -> int | None:
+        raw = data.sp.get(point)
+        return None if raw is None else (raw & 0xFFFF) * COUNTER_HOURS_PER_STEP
+    return value
+
+
+def _filter_remaining_days(data: ProxonData) -> int | None:
+    """Days until the unit filter is due: lifetime (months) minus elapsed runtime; 1 month = 730 h."""
+    months, raw = data.sp.get(SP_FILTER_LIFETIME_MONTHS), data.sp.get(SP_FILTER_RUNTIME)
+    if months is None or raw is None:
+        return None
+    remaining_h = months * 730 - (raw & 0xFFFF) * COUNTER_HOURS_PER_STEP
+    return max(0, round(remaining_h / 24))
+
+
+def _operation_mode(data: ProxonData) -> str | None:
+    raw = data.dp.get(DP_OPERATION_MODE)
+    return None if raw is None else OPERATION_MODE_TEXT.get(raw, f"Unbekannt ({raw})")
+
+
+def _heater_module(index: int) -> tuple[Callable[[ProxonData], int | None], Callable[[ProxonData], dict[str, Any]]]:
+    """Heating module status word: bits R1..R10 = relay (heating element) active."""
+    point = DP_HEATER_MODULE_STATUS[index]
+
+    def value(data: ProxonData) -> int | None:
+        raw = data.dp.get(point)
+        return None if raw is None else bin(raw & 0x3FF).count("1")
+
+    def attrs(data: ProxonData) -> dict[str, Any]:
+        raw = data.dp.get(point) or 0
+        return {"raw": raw, "active_relays": [f"R{i + 1}" for i in range(10) if raw & (1 << i)]}
+
+    return value, attrs
+
+
 def _faults(data: ProxonData) -> int:
     return sum(1 for p in FAULT_POINTS if data.dp.get(p))
 
@@ -156,10 +198,22 @@ SENSORS: tuple[ProxonSensorDescription, ...] = (
     ProxonSensorDescription(key="p19_defrost_diff", name="P19 Druckdifferenz Abtau", value=_dp(DP_P19_DEFROST_DIFF, 100), icon="mdi:gauge",
                             state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=2, entity_registry_enabled_default=False, **DIAG),
     # Counters / filter (app model)
-    ProxonSensorDescription(key="operating_hours", name="Betriebsstunden", value=lambda d: None if d.sp.get(SP_OPERATING_HOURS) is None else d.sp.get(SP_OPERATING_HOURS) & 0xFFFF,
+    ProxonSensorDescription(key="operating_hours", name="Betriebsstunden", value=_counter_hours(SP_OPERATING_HOURS),
                             native_unit_of_measurement=UnitOfTime.HOURS, state_class=SensorStateClass.TOTAL_INCREASING, icon="mdi:counter", **DIAG),
-    ProxonSensorDescription(key="filter_runtime", name="Filter Laufzeit", value=_sp(SP_FILTER_RUNTIME), icon="mdi:air-filter", **DIAG),
-    ProxonSensorDescription(key="filter_interval", name="Filterwechselintervall", value=_sp(SP_FILTER_INTERVAL), icon="mdi:air-filter", **DIAG),
+    ProxonSensorDescription(key="filter_runtime", name="Filter Laufzeit", value=_counter_hours(SP_FILTER_RUNTIME),
+                            native_unit_of_measurement=UnitOfTime.HOURS, state_class=SensorStateClass.TOTAL_INCREASING, icon="mdi:air-filter", **DIAG),
+    ProxonSensorDescription(key="filter_lifetime", name="Filter Standzeit", value=_sp(SP_FILTER_LIFETIME_MONTHS),
+                            native_unit_of_measurement="Monate", icon="mdi:air-filter", **DIAG),
+    ProxonSensorDescription(key="filter_remaining", name="Filter Restlaufzeit", value=_filter_remaining_days,
+                            native_unit_of_measurement=UnitOfTime.DAYS, icon="mdi:air-filter"),
+    ProxonSensorDescription(key="filter_interval", name="T300 Filterwechselintervall", value=_sp(SP_FILTER_INTERVAL),
+                            native_unit_of_measurement="Monate", icon="mdi:air-filter", entity_registry_enabled_default=False, **DIAG),
+    ProxonSensorDescription(key="operation_mode", name="Aktueller Betrieb", value=_operation_mode, icon="mdi:heat-pump-outline",
+                            attrs=lambda d: {"raw": d.dp.get(DP_OPERATION_MODE)}),
+    ProxonSensorDescription(key="heater_module_1", name="Heizmodul 1 aktive Relais", value=_heater_module(0)[0], attrs=_heater_module(0)[1],
+                            icon="mdi:radiator", **DIAG),
+    ProxonSensorDescription(key="heater_module_2", name="Heizmodul 2 aktive Relais", value=_heater_module(1)[0], attrs=_heater_module(1)[1],
+                            icon="mdi:radiator", entity_registry_enabled_default=False, **DIAG),
     # States (app model)
     ProxonSensorDescription(key="damper_position", name="Schieberposition", value=_dp(DP_DAMPER_POSITION), icon="mdi:valve", **DIAG),
     ProxonSensorDescription(key="valve_heating", name="E-Ventil Heizung Position", value=_dp(DP_VALVE_HEATING), icon="mdi:valve", **DIAG),

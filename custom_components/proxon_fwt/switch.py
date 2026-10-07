@@ -29,6 +29,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         ProxonSwitch(coordinator, FUNC_COOLING, "Kühlfreigabe", "mdi:snowflake"),
         ProxonSwitch(coordinator, FUNC_BOOST, "Intensivlüftung", "mdi:fan-plus"),
         ProxonSwitch(coordinator, FUNC_HEATER_ENABLE, "E-Heizstab Freigabe", "mdi:water-boiler", EntityCategory.CONFIG),
+        # Same register as the living-room PTC switch (ZBP PTC enable) - offered on the main device as
+        # the "global" electric heating enable users look for.
+        ProxonSwitch(coordinator, FUNC_LIVING_PTC, "Elektroheizung Freigabe (ZBP)", "mdi:radiator", EntityCategory.CONFIG, key_suffix="_global"),
         ProxonSwitch(coordinator, FUNC_T300_MODE, "Warmwasserbereitung (T300)", "mdi:water-boiler-auto", EntityCategory.CONFIG),
         ProxonSwitch(coordinator, FUNC_LEGIONELLA, "Legionellenfunktion", "mdi:bacteria", EntityCategory.CONFIG, enabled=False),
     ]
@@ -44,9 +47,9 @@ class ProxonSwitch(ProxonEntity, SwitchEntity):
 
     def __init__(
         self, coordinator: ProxonCoordinator, func: WriteFunc, name: str, icon: str,
-        category: EntityCategory | None = None, enabled: bool = True,
+        category: EntityCategory | None = None, enabled: bool = True, key_suffix: str = "",
     ) -> None:
-        super().__init__(coordinator, func.key, name)
+        super().__init__(coordinator, func.key + key_suffix, name)
         self._func = func
         self._attr_icon = icon
         self._attr_entity_category = category

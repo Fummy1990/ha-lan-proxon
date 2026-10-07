@@ -127,7 +127,7 @@
         "name": "Filter runtime"
       },
       "filter_interval": {
-        "name": "Filter change interval"
+        "name": "T300 filter change interval"
       },
       "damper_position": {
         "name": "Damper position"
@@ -230,6 +230,21 @@
       },
       "schedule_day": {
         "name": "{day}"
+      },
+      "filter_lifetime": {
+        "name": "Filter lifetime"
+      },
+      "filter_remaining": {
+        "name": "Filter remaining"
+      },
+      "operation_mode": {
+        "name": "Current operation"
+      },
+      "heater_module_1": {
+        "name": "Heating module 1 active relays"
+      },
+      "heater_module_2": {
+        "name": "Heating module 2 active relays"
       }
     },
     "binary_sensor": {
@@ -274,6 +289,9 @@
       },
       "pv_flag_hp": {
         "name": "PV signal heat pump"
+      },
+      "panel_locked": {
+        "name": "Control panel locked"
       }
     },
     "switch": {
@@ -297,6 +315,9 @@
       },
       "room_ptc": {
         "name": "Electric heater (PTC)"
+      },
+      "living_ptc_global": {
+        "name": "Electric heating enable (main panel)"
       }
     },
     "number": {

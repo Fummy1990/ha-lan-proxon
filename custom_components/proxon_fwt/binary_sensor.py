@@ -20,6 +20,7 @@ from .const import (
     DP_PTC_RELAY_A,
     DP_SOLENOID_VALVE,
     SP_HAS_CO2,
+    SP_PANEL_LOCK,
     SP_SCHEDULE_GLOBAL,
     DP_PTC_RELAY_B,
     DP_PV_FLAG_HEATER,
@@ -60,6 +61,11 @@ BINARY_SENSORS: tuple[ProxonBinaryDescription, ...] = (
     ProxonBinaryDescription(
         key="ptc_relay", name="PTC-Relais aktiv", device_class=BinarySensorDeviceClass.HEAT,
         value=lambda d: bool(d.dp.get(DP_PTC_RELAY_A)) or bool(d.dp.get(DP_PTC_RELAY_B)),
+    ),
+    ProxonBinaryDescription(
+        key="panel_locked", name="Bedienpanel gesperrt", icon="mdi:lock-outline",
+        value=lambda d: None if d.sp.get(SP_PANEL_LOCK) is None else bool(d.sp.get(SP_PANEL_LOCK)),
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     ProxonBinaryDescription(key="t300_compressor_relay", name="T300 Kompressor", device_class=BinarySensorDeviceClass.RUNNING,
                             value=_dp_on(DP_T300_RELAYS[0]), entity_category=EntityCategory.DIAGNOSTIC),

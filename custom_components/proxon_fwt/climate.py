@@ -17,8 +17,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DP_COMPRESSOR_RPM,
     DP_FOUR_WAY_VALVE,
+    DP_OPERATION_MODE,
     DP_PTC_RELAY_A,
     DP_PTC_RELAY_B,
+    FUNC_LIVING_PTC,
     FUNC_LIVING_TARGET,
     LIVING_TARGET_MAX,
     LIVING_TARGET_MIN,
@@ -26,6 +28,7 @@ from .const import (
     ROOM_OFFSET_MAX,
     ROOM_OFFSET_MIN,
     room_offset_func,
+    room_ptc_func,
 )
 from .coordinator import ProxonCoordinator, ProxonWriteError
 from .entity import ProxonRoomEntity
@@ -41,11 +44,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
 
 class ProxonRoomClimate(ProxonRoomEntity, ClimateEntity):
-    """Room setpoint. The system decides heating/cooling itself (AUTO)."""
+    """Room setpoint. AUTO = the unit decides (heat pump / ventilation); HEAT = electric heater (PTC)
+    enabled for this room in addition. The PTC switch entity stays available as well."""
 
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
-    _attr_hvac_modes = [HVACMode.AUTO]
-    _attr_hvac_mode = HVACMode.AUTO
+    _attr_hvac_modes = [HVACMode.AUTO, HVACMode.HEAT]
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_precision = PRECISION_TENTHS
     _attr_name = None  # use the room device name
@@ -85,14 +88,23 @@ class ProxonRoomClimate(ProxonRoomEntity, ClimateEntity):
         return self.room.target
 
     @property
+    def hvac_mode(self) -> HVACMode:
+        return HVACMode.HEAT if self.room.ptc else HVACMode.AUTO
+
+    @property
     def hvac_action(self) -> HVACAction | None:
-        """Approximation: PTC enabled and a PTC relay active -> heating; compressor running ->
-        heating/cooling according to the four-way valve; otherwise idle."""
+        """PTC enabled and a heating module relay active -> heating; otherwise the unit's current
+        operation (DP0:26: 1 heating, 2 cooling); fallback compressor + four-way valve; else idle."""
         data = self.coordinator.data
         ptc_relay = bool(data.dp.get(DP_PTC_RELAY_A)) or bool(data.dp.get(DP_PTC_RELAY_B))
         if self.room.ptc and ptc_relay:
             return HVACAction.HEATING
-        if data.dp.get(DP_COMPRESSOR_RPM):
+        op = data.dp.get(DP_OPERATION_MODE)
+        if op == 1:
+            return HVACAction.HEATING
+        if op == 2:
+            return HVACAction.COOLING
+        if op is None and data.dp.get(DP_COMPRESSOR_RPM):
             return HVACAction.COOLING if data.dp.get(DP_FOUR_WAY_VALVE) == 1 else HVACAction.HEATING
         return HVACAction.IDLE
 
@@ -107,8 +119,11 @@ class ProxonRoomClimate(ProxonRoomEntity, ClimateEntity):
         }
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        if hvac_mode != HVACMode.AUTO:
-            raise ProxonWriteError("Die Betriebsart wird zentral über 'Betriebsart' gewählt")
+        """HEAT enables the room's electric heater (PTC), AUTO disables it (same guard as the switch)."""
+        if hvac_mode not in (HVACMode.AUTO, HVACMode.HEAT):
+            raise ProxonWriteError("Nur Auto (Anlage entscheidet) oder Heizen (PTC-Freigabe) möglich")
+        func = FUNC_LIVING_PTC if self.room_index == 0 else room_ptc_func(self.room_index)
+        await self.coordinator.async_write(func, 1 if hvac_mode == HVACMode.HEAT else 0)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         temp = kwargs.get(ATTR_TEMPERATURE)

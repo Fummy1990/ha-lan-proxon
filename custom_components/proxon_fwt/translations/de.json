@@ -127,7 +127,7 @@
         "name": "Filter Laufzeit"
       },
       "filter_interval": {
-        "name": "Filterwechselintervall"
+        "name": "T300 Filterwechselintervall"
       },
       "damper_position": {
         "name": "Schieberposition"
@@ -230,6 +230,21 @@
       },
       "schedule_day": {
         "name": "{day}"
+      },
+      "filter_lifetime": {
+        "name": "Filter Standzeit"
+      },
+      "filter_remaining": {
+        "name": "Filter Restlaufzeit"
+      },
+      "operation_mode": {
+        "name": "Aktueller Betrieb"
+      },
+      "heater_module_1": {
+        "name": "Heizmodul 1 aktive Relais"
+      },
+      "heater_module_2": {
+        "name": "Heizmodul 2 aktive Relais"
       }
     },
     "binary_sensor": {
@@ -274,6 +289,9 @@
       },
       "pv_flag_hp": {
         "name": "PV-Signal Wärmepumpe"
+      },
+      "panel_locked": {
+        "name": "Bedienpanel gesperrt"
       }
     },
     "switch": {
@@ -297,6 +315,9 @@
       },
       "room_ptc": {
         "name": "Elektroheizung (PTC)"
+      },
+      "living_ptc_global": {
+        "name": "Elektroheizung Freigabe (ZBP)"
       }
     },
     "number": {

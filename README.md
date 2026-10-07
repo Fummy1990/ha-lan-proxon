@@ -10,7 +10,7 @@ Set-up only needs the device ID and password from the access card; room controll
 to areas. Verified writes with automatic retries, weekly schedule editing, holiday mode.
 Entity names are available in German and English; this README is in German.
 
-Version 2.7.1 (06.10.2026). Grundlage: eine per Nabto-Mitschnitt verifizierte Adress-Tabelle
+Version 2.7.0 (06.10.2026). Grundlage: eine per Nabto-Mitschnitt verifizierte Adress-Tabelle
 sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Assistant 2026.9.
 
 ## Rechtliches und Haftung
@@ -32,7 +32,7 @@ sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Ass
 **Über HACS (empfohlen)**
 
 1. HACS → Integrationen → Menü (⋮) → *Benutzerdefinierte Repositories* →
-   `https://github.com/Fummy1990/ha-lan-proxon`, Typ *Integration* → Hinzufügen.
+   `https://github.com/Fummy1990/hacs-proxon-fwt`, Typ *Integration* → Hinzufügen.
 2. „Proxon FWT (LAN)" in HACS suchen → Herunterladen → Home Assistant neu starten.
 
 **Manuell**
@@ -82,7 +82,7 @@ Passwort), da sie kein Zertifikat enthalten.
 
 Einstellungen → Integration → „Konfigurieren":
 
-- **Abfrageintervall** (30–600 s, Standard 60 s). Jede Abfrage ist eine eigene Nabto-Sitzung
+- **Abfrageintervall** (15–600 s, Standard 30 s). Jede Abfrage ist eine eigene Nabto-Sitzung
   mit ca. 20 Lese-RPCs (≈ 6 s).
 - **Raum → Bereich**: Jeder verbundene Raumregler ist ein eigenes HA-Gerät („Proxon <Raumname>").
   Hier wird ihm ein HA-Bereich zugeordnet (alternativ direkt im Gerätedialog).
@@ -92,8 +92,13 @@ Einstellungen → Integration → „Konfigurieren":
 **Pro Raum (Gerät „Proxon <Raumname>")**
 
 - `climate.proxon_<raum>` – Solltemperatur (Wohnzimmer 16–24 °C in 0,5 K; Nebenräume
-  Referenz ±3 K in 1 K), Ist-Temperatur, `hvac_action` (PTC ein → heating, Kompressor → heating/cooling).
-- `switch.proxon_<raum>_elektroheizung_ptc` – PTC-Freigabe des Raums.
+  Referenz ±3 K in 1 K), Ist-Temperatur. HVAC-Modus **Auto** = Anlage entscheidet (Wärmepumpe/Lüftung),
+  **Heizen** = Elektroheizung (PTC) für diesen Raum freigegeben – dieselbe Funktion wie der PTC-Schalter,
+  mit denselben Prüfregeln. `hvac_action`: PTC-Relais aktiv → heating, sonst „Aktueller Betrieb" der
+  Anlage (Heizen/Kühlen), sonst idle.
+- `switch.proxon_<raum>_elektroheizung_ptc` – PTC-Freigabe des Raums. Die Freigabe des Wohnzimmers ist
+  zugleich die globale Freigabe des Hauptpanels (ZBP) und zusätzlich auf dem Hauptgerät als
+  „Elektroheizung Freigabe (ZBP)" vorhanden.
 - `sensor.proxon_<raum>_temperatur` – Ist-Temperatur (für Verlauf).
 
 **Gerät „Proxon Zeitprogramm"** (Wochenprogramm Lüftung, 7 Tage × 3 Phasen)
@@ -130,15 +135,19 @@ Einstellungen → Integration → „Konfigurieren":
 - Sensoren: T1 Zuluft, T3 Frischluft, T4 Fortluft, T7 Abluft, Zone 2 Temperatur, T12/T13/T14 (Diagnose),
   P14 ND Verdampfer (bar, Diagnose), P19 Druckdifferenz Abtau (Skalierung unsicher, deaktiviert), Drehzahlen Zu-/Abluft, Lüfterstufe Ist, Luftfeuchte Abluft,
   Kompressor-Drehzahl, Vierwegeventil, Schieberposition, E-Ventil-Positionen, Status Kompressor/Ventilatoren,
-  Intensivlüftung Restzeit, Warmwasser Mitte/Unten, T300-Temperaturen, Betriebsstunden, Filterlaufzeit,
-  Filterwechselintervall, Firmware, Geräteuhr, Uhrabweichung (Geräteuhr − HA-Zeit), Fehlerwörter (Diagnose).
+  Intensivlüftung Restzeit, Warmwasser Mitte/Unten, T300-Temperaturen, **Aktueller Betrieb**
+  (Lüftung/Heizen/Kühlen), Betriebsstunden und Filter Laufzeit (die Anlage zählt in 2-Stunden-Schritten –
+  wird umgerechnet), Filter Standzeit (Monate), **Filter Restlaufzeit** (Tage, berechnet aus Standzeit −
+  Laufzeit), T300 Filterwechselintervall (deaktiviert), Heizmodul 1/2 aktive Relais (Bitmaske R1–R10 als
+  Attribut), Firmware, Geräteuhr, Uhrabweichung (Geräteuhr − HA-Zeit), Fehlerwörter (Diagnose).
 - Binärsensoren: Störung, Bypass, Erdwärme, Magnetventil, PTC-Relais aktiv, E-Heizstab aktiv, T300-Relais,
-  PV-Signale, CO₂-Sensor vorhanden.
+  PV-Signale, CO₂-Sensor vorhanden, Bedienpanel gesperrt (nur lesen – der Sperrcode des Panels lässt sich
+  über LAN nicht setzen).
 
 Quellen der Zuordnung: die verifizierte Adresstabelle (Steuerfunktionen, Räume, Zeitprogramm-Formel) und das
 extrahierte Modell der Original-App (54 Datenpunkte/Sollwerte mit Nabto-Adressen). Nicht über LAN
 möglich (Schreibversuche bleiben ohne Antwort bzw. `NO_ACCESS` – nicht in der Nabto-Schreibtabelle der
-Anlage): PV-Freigabe, E1/E2-Boostdauer, Raumnamen, Geräteuhr (Zeitsync). Diese Werte setzt nur das
+Anlage): PV-Freigabe, E1/E2-Boostdauer, Raumnamen, Geräteuhr (Zeitsync), Bedienpanel-Sperre. Diese Werte setzt nur das
 Service-Tool per Modbus-RTU am Gerät.
 
 ## Schreibweg (Sicherheitskonzept)

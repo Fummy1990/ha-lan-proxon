@@ -29,8 +29,8 @@ PLATFORMS: list[Platform] = [
 ]
 
 DEFAULT_PORT = 5570
-DEFAULT_SCAN_INTERVAL = 60
-MIN_SCAN_INTERVAL = 30
+DEFAULT_SCAN_INTERVAL = 30
+MIN_SCAN_INTERVAL = 15
 MAX_SCAN_INTERVAL = 600
 
 CONF_DEVICE_ID = "device_id"
@@ -63,6 +63,8 @@ POLL_READS_DP: tuple[tuple[int, int, int], ...] = (
 )
 POLL_READS_SP: tuple[tuple[int, int, int], ...] = (
     (0, 0, 60), (0, 60, 60), (0, 120, 17), (0, 177, 33),
+    (0, 402, 2),                    # ZBP timeout / ZBP lock code (Q002/Q007)
+    (0, 460, 2),                    # filter lifetimes (V05 unit filter months, V06 recirculation filter)
     (1, 0, 60), (1, 60, 58),
     (3, 56, 7),                     # device clock only (SP3:54 is a password - never read)
     (4, 0, 13),                     # operating hour counters / filter runtime
@@ -182,9 +184,15 @@ DP_HP_RELAY_WORD = (1, 1)
 DP_FAN_STATUS = (1, 2)
 DP_COMPRESSOR_STATUS = (1, 12)
 SP_HAS_CO2 = (0, 38)
-SP_OPERATING_HOURS = (4, 0)          # unsigned
-SP_FILTER_RUNTIME = (4, 2)
-SP_FILTER_INTERVAL = (7, 25)
+SP_OPERATING_HOURS = (4, 0)          # unsigned, counts in 2-hour steps (profile: "Stundenzähler * 2")
+SP_FILTER_RUNTIME = (4, 2)           # 2-hour steps since last filter change (S03)
+COUNTER_HOURS_PER_STEP = 2
+SP_FILTER_LIFETIME_MONTHS = (0, 460) # V05 Geraetefilter Standzeit, 3..8 months
+SP_FILTER_INTERVAL = (7, 25)         # T300 F-02 Filterwechselinterval (months, 0 = none)
+SP_PANEL_LOCK = (0, 403)             # Q007 "ZBP sperren" (lock code, 0 = unlocked); not writable over Nabto
+DP_OPERATION_MODE = (0, 26)          # "Akt. Betriebsart": 0 ventilation, 1 heating, 2 cooling
+OPERATION_MODE_TEXT = {0: "Lüftung", 1: "Heizen", 2: "Kühlen"}
+DP_HEATER_MODULE_STATUS = (DP_PTC_RELAY_A, DP_PTC_RELAY_B)  # Heizmodul 1/2 Status, bits R1..R10
 ZONE2_TARGET_MIN = 16.0
 ZONE2_TARGET_MAX = 24.0
 CO2_LIMIT_MIN = 400
