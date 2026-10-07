@@ -188,15 +188,10 @@ PTC **aus**schalten ist auch bei Fehlerbits erlaubt.
 | Verbindungsmaske | SP1:0, SP1:1 | – | NBE2..20 = Bit 0..18, NBE1 = Bit 19 |
 | Raumnamen | SP6:(10i..10i+9) | – | 2 Zeichen/Wort, latin-1 |
 
-## Tests
+## Qualitätssicherung
 
-- `tests/test_integration.py`: Setup, Migration, Entities, Schreibpfad und Policies gegen ein
-  Fake-Gerät mit dem realen Snapshot (HA 2026.9.4, pytest-homeassistant-custom-component).
-- Live (06.10.2026): Read-only-Verifikation aller 28 Profilblöcke; 34 reversible Writes bestätigt
-  (Raumsoll, Lüfterstufe, Boostdauer, PTC, Betriebsart, Zone-2-Soll, Grenzwerte, T300-Betriebsart,
-  Warmwasser-Soll, Heizstab Freigabe/Soll, Legionellen, Zeitprogramm Start/Ende/Stufe; Überlappung
-  korrekt abgelehnt). Beobachtungen: ACK ohne Wirkung und Status 98 treten gelegentlich auf – daher
-  die Wiederholungslogik. Die Geräteuhr geht ca. 20–30 min vor; die Zeitprogramm-Regeln nutzen sie.
+hassfest- und HACS-Validierung laufen bei jedem Push (GitHub Actions). Die Integration wird vor
+jedem Release gegen eine reale Anlage sowie mit einer Unit-Test-Suite (HA-Testharness, lokal) geprüft.
 
 ## Übersetzungen
 
