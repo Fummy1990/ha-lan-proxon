@@ -3,11 +3,12 @@ from __future__ import annotations
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfRatio, UnitOfTemperature, UnitOfTime
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    PPM,
     CO2_LIMIT_MAX,
     CO2_LIMIT_MIN,
     FUNC_CO2_LIMIT,
@@ -56,7 +57,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             ProxonNumber(
                 coordinator, FUNC_CO2_LIMIT, "Grenzwert CO₂", scale=1,
                 minimum=CO2_LIMIT_MIN, maximum=CO2_LIMIT_MAX, step=50,
-                unit=UnitOfRatio.PARTS_PER_MILLION, icon="mdi:molecule-co2",
+                unit=PPM, icon="mdi:molecule-co2",
             ),
             ProxonNumber(
                 coordinator, FUNC_HUMIDITY_LIMIT, "Grenzwert Feuchte", scale=1,

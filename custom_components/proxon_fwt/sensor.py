@@ -17,7 +17,6 @@ from homeassistant.const import (
     REVOLUTIONS_PER_MINUTE,
     EntityCategory,
     UnitOfPressure,
-    UnitOfRatio,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -27,6 +26,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    PPM,
     SCHEDULE_DAY_NAMES,
     SCHEDULE_LEVEL_OPTIONS,
     SCHEDULE_PHASES,
@@ -228,7 +228,7 @@ SENSORS: tuple[ProxonSensorDescription, ...] = (
     ProxonSensorDescription(key="humidity", name="Luftfeuchte Abluft", value=_dp(DP_HUMIDITY),
                             device_class=SensorDeviceClass.HUMIDITY, native_unit_of_measurement=PERCENTAGE,
                             state_class=SensorStateClass.MEASUREMENT),
-    ProxonSensorDescription(key="co2", name="CO₂ (roh)", value=_dp(DP_CO2), native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
+    ProxonSensorDescription(key="co2", name="CO₂ (roh)", value=_dp(DP_CO2), native_unit_of_measurement=PPM,
                             icon="mdi:molecule-co2", entity_registry_enabled_default=False),
     ProxonSensorDescription(key="compressor_rpm", name="Kompressor Drehzahl", value=_dp(DP_COMPRESSOR_RPM), **RPM),
     ProxonSensorDescription(key="four_way_valve", name="Vierwegeventil",
@@ -248,8 +248,10 @@ SENSORS: tuple[ProxonSensorDescription, ...] = (
     ProxonSensorDescription(key="boost_e1e2", name="Intensivlüftung Dauer E1/E2", value=_sp(SP_BOOST_E1E2),
                             native_unit_of_measurement=UnitOfTime.MINUTES, icon="mdi:timer", **DIAG),
     ProxonSensorDescription(key="global_ptc", name="PTC-Freigabe global", value=_sp(SP_GLOBAL_PTC), icon="mdi:radiator", **DIAG),
-    ProxonSensorDescription(key="firmware_main", name="Firmware Hauptplatine", value=_dp(DP_FIRMWARE_MAIN, 10), icon="mdi:chip", **DIAG),
-    ProxonSensorDescription(key="firmware_t300", name="Firmware T300", value=_dp(DP_FIRMWARE_T300, 10), icon="mdi:chip", **DIAG),
+    ProxonSensorDescription(key="firmware_main", name="Firmware Hauptplatine", value=_dp(DP_FIRMWARE_MAIN, 10), icon="mdi:chip",
+                            attrs=lambda d: {"raw": d.dp.get(DP_FIRMWARE_MAIN)}, **DIAG),
+    ProxonSensorDescription(key="firmware_t300", name="Firmware T300", value=_dp(DP_FIRMWARE_T300, 10), icon="mdi:chip",
+                            attrs=lambda d: {"raw": d.dp.get(DP_FIRMWARE_T300)}, **DIAG),
     ProxonSensorDescription(key="clock", name="Geräteuhr", value=_clock, icon="mdi:clock-outline", **DIAG),
     ProxonSensorDescription(key="clock_offset", name="Uhrabweichung", value=_clock_offset, native_unit_of_measurement=UnitOfTime.MINUTES,
                             icon="mdi:clock-alert-outline", state_class=SensorStateClass.MEASUREMENT, **DIAG),

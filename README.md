@@ -10,8 +10,8 @@ Set-up only needs the device ID and password from the access card; room controll
 to areas. Verified writes with automatic retries, weekly schedule editing, holiday mode.
 Entity names are available in German and English; this README is in German.
 
-Version 2.7.0 (06.10.2026). Grundlage: eine per Nabto-Mitschnitt verifizierte Adress-Tabelle
-sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Assistant 2026.9.
+Version 2.8.1 (21.10.2026). Grundlage: eine per Nabto-Mitschnitt verifizierte Adress-Tabelle
+sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Assistant 2026.10.
 
 ## Rechtliches und Haftung
 
@@ -31,9 +31,12 @@ sowie Read-only- und Schreibtests gegen eine reale Anlage. Getestet mit Home Ass
 
 **Über HACS (empfohlen)**
 
-1. HACS → Integrationen → Menü (⋮) → *Benutzerdefinierte Repositories* →
-   `https://github.com/Fummy1990/hacs-proxon-fwt`, Typ *Integration* → Hinzufügen.
-2. „Proxon FWT (LAN)" in HACS suchen → Herunterladen → Home Assistant neu starten.
+1. HACS → Integrationen → nach „Proxon FWT (LAN)" suchen → Herunterladen.
+2. Home Assistant neu starten.
+
+Solange die Integration noch nicht im HACS-Standardkatalog gelistet ist, vorher einmalig
+HACS → Integrationen → Menü (⋮) → *Benutzerdefinierte Repositories* →
+`https://github.com/Fummy1990/ha-lan-proxon`, Typ *Integration* → Hinzufügen; danach wie oben suchen.
 
 **Manuell**
 
@@ -47,7 +50,7 @@ Passwort von der Zugangskarte eingeben (die IP der Anlage wird im Heimnetz autom
 Im zweiten Schritt werden die erkannten Raumregler angezeigt und können direkt HA-Bereichen
 zugeordnet werden.
 
-Voraussetzungen: Home Assistant ≥ 2025.6, Anlage und HA im selben Netz (UDP 5570 zur Anlage),
+Voraussetzungen: Home Assistant ≥ 2026.2 (getestet mit 2026.2 und 2026.10), Anlage und HA im selben Netz (UDP 5570 zur Anlage),
 einmalig Internetzugang zum Signieren des Zertifikats.
 
 ## Einrichtung (Config-Flow)
@@ -97,8 +100,8 @@ Einstellungen → Integration → „Konfigurieren":
   mit denselben Prüfregeln. `hvac_action`: PTC-Relais aktiv → heating, sonst „Aktueller Betrieb" der
   Anlage (Heizen/Kühlen), sonst idle.
 - `switch.proxon_<raum>_elektroheizung_ptc` – PTC-Freigabe des Raums. Die Freigabe des Wohnzimmers ist
-  zugleich die globale Freigabe des Hauptpanels (ZBP) und zusätzlich auf dem Hauptgerät als
-  „Elektroheizung Freigabe (ZBP)" vorhanden.
+  dasselbe Register wie „ZBP PTC freigeben" am zentralen Bedienpanel (L044) – also die Freigabe des
+  Raums, in dem das Panel sitzt, keine globale Freigabe.
 - `sensor.proxon_<raum>_temperatur` – Ist-Temperatur (für Verlauf).
 
 **Gerät „Proxon Zeitprogramm"** (Wochenprogramm Lüftung, 7 Tage × 3 Phasen)
@@ -124,7 +127,12 @@ Einstellungen → Integration → „Konfigurieren":
 **Gerät „Proxon FWT"**
 
 - Select: Betriebsart (Aus, Sommer, Winter, ECO Komfort, Ofenbetrieb), Lüfterstufe (1–4).
-- Switch: Kühlfreigabe, Intensivlüftung, E-Heizstab-Freigabe, Legionellenfunktion (standardmäßig deaktiviert, experimentell).
+- Switch: Kühlfreigabe, Intensivlüftung, E-Heizstab-Freigabe, Legionellenfunktion (T300-Parameter D-04;
+  Schreiben an einer realen Anlage verifiziert).
+- Switch: **Elektroheizung Freigabe (alle Räume)** – virtueller Schalter: „ein" = PTC-Freigabe in allen
+  verbundenen Räumen gesetzt; Schalten schreibt die Freigabe aller Räume nacheinander in einer Sitzung
+  (Attribute `rooms_enabled` / `rooms_disabled`). Eine echte globale Freigabe bietet die Anlage über
+  LAN nicht (der Serviceparameter „Global PTC freigeben" ist über Nabto nur lesbar).
 - Switch: Warmwasserbereitung (T300-Betriebsart, App „T300Betriebsart"); **Urlaubsmodus** – führt die
   Nebenwrites des App-Urlaubsmodus aus (Lüfterstufe 1, Wohnzimmer/Zone 2 18 °C, alle Raum-Offsets −3 K,
   alle Raum-PTC aus, Warmwasserbereitung aus) und stellt beim Ausschalten die gesicherten Werte wieder her
@@ -149,6 +157,28 @@ extrahierte Modell der Original-App (54 Datenpunkte/Sollwerte mit Nabto-Adressen
 möglich (Schreibversuche bleiben ohne Antwort bzw. `NO_ACCESS` – nicht in der Nabto-Schreibtabelle der
 Anlage): PV-Freigabe, E1/E2-Boostdauer, Raumnamen, Geräteuhr (Zeitsync), Bedienpanel-Sperre. Diese Werte setzt nur das
 Service-Tool per Modbus-RTU am Gerät.
+
+## Firmware-Versionen
+
+Die Lesezuordnung (Sensoren, Räume, Zeitprogramm) folgt dem Hersteller-Profil und funktioniert nach
+Rückmeldungen auch auf anderen Firmware-Ständen (z. B. 7.3, 12). Die **Schreib-Aliasse** wurden dagegen
+nur für Hauptplatine **7.4** / T300 **3.5** an einer realen Anlage verifiziert. Auf anderer Firmware
+sind Schreibbefehle deshalb standardmäßig gesperrt (`Firmware … nicht verifiziert: Schreiben gesperrt`).
+
+Wer auf eigenes Risiko schreiben möchte: Einstellungen → Integration → „Konfigurieren" → **„Schreiben
+bei nicht verifizierter Firmware erlauben"** (die Option erscheint nur, wenn die Anlage eine nicht
+verifizierte Firmware meldet). Dann gilt: freigegeben sind nur die reversiblen Raum-/Lüftungsfunktionen
+(Betriebsart, Lüfterstufe, Raumsoll/Offset, Raum-PTC, Kühlfreigabe, Intensivlüftung, Zone 2, CO₂-/Feuchte-
+Grenzwert); **Warmwasser/T300, Zeitprogramm und Urlaubsmodus bleiben gesperrt**. Genau ein Schreibversuch
+je Wert, keine automatische Wiederholung; wird ein Schreibbefehl bestätigt, aber der Zielwert nicht
+sichtbar, werden **alle weiteren Schreibbefehle bis zum Neuladen der Integration gesperrt** (der Alias
+könnte auf dieser Firmware ein anderes Register treffen). Bitte das Ergebnis – Firmware (Sensoren „Firmware Hauptplatine/T300",
+Attribut `raw`) und welche Funktionen korrekt gewirkt haben – als Issue melden; verifizierte Stände
+werden in die Freigabeliste aufgenommen.
+
+Für die Analyse anderer Firmware-Stände hilft der **Diagnose-Download** (Einstellungen → Integration →
+⋮ → „Diagnose herunterladen"): er enthält die Rohwerte des letzten Abfragezyklus (Geräte-ID, Host,
+Zertifikat, Bereichszuordnung, Raumnamen und Panel-Sperrcode sind entfernt).
 
 ## Schreibweg (Sicherheitskonzept)
 
@@ -202,5 +232,6 @@ beim Wechsel der Sprache erhalten.
 ## Hinweise
 
 - Während Schreibvorgängen sollte die Original-App geschlossen sein (parallele Sitzungen).
-- Die Zuordnungen gelten für Firmware 7.4 / 3.5; bei anderer Firmware werden Writes gesperrt.
+- Die Schreibzuordnung ist für Firmware 7.4 / 3.5 verifiziert; bei anderer Firmware sind Writes gesperrt,
+  sofern nicht ausdrücklich freigegeben (siehe „Firmware-Versionen").
 - Nur im eigenen, vertrauenswürdigen Heimnetz betreiben; Nabto-Verkehr ist unverschlüsselt (NULL-Crypt).

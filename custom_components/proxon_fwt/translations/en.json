@@ -83,7 +83,11 @@
           "area_17": "Area for room 17",
           "area_18": "Area for room 18",
           "area_19": "Area for room 19",
-          "area_20": "Area for room 20"
+          "area_20": "Area for room 20",
+          "allow_unverified_firmware": "Allow writes on unverified firmware (at your own risk)"
+        },
+        "data_description": {
+          "allow_unverified_firmware": "The write-address mapping was verified for main firmware 7.4 / T300 3.5 only. With this option enabled, writes on other firmware are sent once without automatic resends, and only for reversible room/ventilation functions (operating mode, fan level, room setpoints, room PTC enable, cooling enable, boost, limits); hot water / T300, the weekly schedule and holiday mode stay blocked. The first write that is acknowledged but not applied locks all further writes until the integration is reloaded. Please report your firmware and results in the issue tracker."
         }
       }
     }
@@ -316,8 +320,8 @@
       "room_ptc": {
         "name": "Electric heater (PTC)"
       },
-      "living_ptc_global": {
-        "name": "Electric heating enable (main panel)"
+      "all_rooms_ptc": {
+        "name": "Electric heating enable (all rooms)"
       }
     },
     "number": {

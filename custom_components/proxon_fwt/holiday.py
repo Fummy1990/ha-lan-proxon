@@ -68,6 +68,8 @@ class HolidayController:
         async with self._lock:
             if self.active:
                 return
+            if self.coordinator.firmware_verified is False:
+                raise ProxonWriteError("Urlaubsmodus auf nicht verifizierter Firmware nicht verfügbar")
             data = self.coordinator.data
             funcs = self._funcs()
             if self._state.get("saved"):

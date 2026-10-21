@@ -83,7 +83,11 @@
           "area_17": "Bereich für Raum 17",
           "area_18": "Bereich für Raum 18",
           "area_19": "Bereich für Raum 19",
-          "area_20": "Bereich für Raum 20"
+          "area_20": "Bereich für Raum 20",
+          "allow_unverified_firmware": "Schreiben bei nicht verifizierter Firmware erlauben (auf eigenes Risiko)"
+        },
+        "data_description": {
+          "allow_unverified_firmware": "Die Zuordnung der Schreibadressen ist nur für Hauptplatine 7.4 / T300 3.5 verifiziert. Mit dieser Option werden Schreibbefehle auf anderer Firmware genau einmal ohne automatische Wiederholung gesendet – und nur für reversible Raum-/Lüftungsfunktionen (Betriebsart, Lüfterstufe, Raumsoll, Raum-PTC, Kühlfreigabe, Intensivlüftung, Grenzwerte); Warmwasser/T300, Zeitprogramm und Urlaubsmodus bleiben gesperrt. Der erste bestätigte, aber nicht wirksame Schreibbefehl sperrt alle weiteren bis zum Neuladen der Integration. Bitte Firmware und Ergebnis im Issue-Tracker melden."
         }
       }
     }
@@ -316,8 +320,8 @@
       "room_ptc": {
         "name": "Elektroheizung (PTC)"
       },
-      "living_ptc_global": {
-        "name": "Elektroheizung Freigabe (ZBP)"
+      "all_rooms_ptc": {
+        "name": "Elektroheizung Freigabe (alle Räume)"
       }
     },
     "number": {

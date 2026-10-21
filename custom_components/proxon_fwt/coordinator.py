@@ -14,6 +14,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_ALLOW_UNVERIFIED_FIRMWARE,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -27,6 +28,9 @@ from .const import (
     DP_T300_RELAYS,
     EXPECTED_FIRMWARE_MAIN,
     EXPECTED_FIRMWARE_T300,
+    VERIFIED_FIRMWARE,
+    allowed_on_unverified_firmware,
+    firmware_text,
     FAULT_POINTS,
     MAX_ROOMS,
     NAME_READS_SP,
@@ -171,7 +175,11 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
         self._device_lock = asyncio.Lock()  # one open Nabto session at a time
         self._poll_counter = 0
         self._names: dict[int, str] = {}
-        self.firmware_ok: bool | None = None
+        self.firmware_ok: bool | None = None       # main firmware == verified main firmware
+        self.firmware_verified: bool | None = None  # (main, T300) pair in VERIFIED_FIRMWARE
+        self.allow_unverified = bool(entry.options.get(CONF_ALLOW_UNVERIFIED_FIRMWARE, False))
+        self._write_retries = MAX_WRITE_RETRIES
+        self.unverified_write_locked: str | None = None  # reason, set after an unconfirmed opt-in write
         self.holiday = None  # HolidayController, set in __init__.py
         self.last_write_error: str | None = None
         self.last_write_error_at: datetime | None = None
@@ -210,9 +218,17 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
         self._poll_counter += 1
 
         fw = dp.get(DP_FIRMWARE_MAIN)
+        fw_t300 = dp.get(DP_FIRMWARE_T300)
         self.firmware_ok = fw == EXPECTED_FIRMWARE_MAIN
-        if not self.firmware_ok:
-            _LOGGER.warning("Unexpected main firmware %s (mapping verified for %s only)", fw, EXPECTED_FIRMWARE_MAIN)
+        verified = (fw, fw_t300) in VERIFIED_FIRMWARE
+        if self.firmware_verified is None and not verified:
+            _LOGGER.warning(
+                "Firmware %s / T300 %s is not verified for writes (verified: %s / %s); writes are %s",
+                firmware_text(fw), firmware_text(fw_t300), firmware_text(EXPECTED_FIRMWARE_MAIN),
+                firmware_text(EXPECTED_FIRMWARE_T300),
+                "enabled by the user's opt-in (single attempt, no resends)" if self.allow_unverified else "blocked",
+            )
+        self.firmware_verified = verified
 
         data = ProxonData(sp=sp, dp=dp, names=dict(self._names), updated=datetime.now(timezone.utc))
         data.rooms = build_rooms(sp, dp, data.names)
@@ -239,7 +255,7 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
             async with self._device_lock:
                 session = await self.client.open()
                 try:
-                    await self._guard(session, items[0][0], items[0][1])
+                    await self._guard(session, items)
                     for func, value in items:
                         await self._write_one(session, func, value)
                 except NabtoError as err:
@@ -273,7 +289,12 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
         self.async_set_updated_data(self.data)
 
     async def _write_one(self, session: NabtoSession, func: WriteFunc, value: int) -> None:
-        """Write one value with up to MAX_WRITE_RETRIES automatic resends, then verify."""
+        """Write one value with up to MAX_WRITE_RETRIES automatic resends, then verify.
+
+        On unverified firmware (opt-in) there is exactly one attempt and an unconfirmed write
+        locks all further writes until the integration is reloaded.
+        """
+        retries = self._write_retries
         current = (await self.client.call(session, session.read_sp_list, [func.read]))[0]
         if current == value:
             _LOGGER.debug("%s already %s - no write", func.key, value)
@@ -281,14 +302,14 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
         _LOGGER.info("Write %s: %s -> %s (alias %s:%s)", func.key, current, value, *func.write)
         rb1 = current
         last_problem = ""
-        for attempt in range(1, MAX_WRITE_RETRIES + 2):
+        for attempt in range(1, retries + 2):
             try:
                 await self.client.call(session, session.write, func.write[0], func.write[1], value)
             except NabtoWriteNotAcknowledged as err:
                 # 98 = secondary controller (T300) busy, nothing written; other codes: unknown refusal
                 last_problem = f"Status {err.status}"
                 _LOGGER.warning("Write %s attempt %d: %s", func.key, attempt, last_problem)
-                if attempt <= MAX_WRITE_RETRIES:
+                if attempt <= retries:
                     await asyncio.sleep(5.0)
                     continue
                 self._note_write_error(func, f"{last_problem} nach {attempt} Versuchen")
@@ -298,7 +319,7 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
             except NabtoConnectionError as err:
                 last_problem = f"keine Antwort ({err})"
                 _LOGGER.warning("Write %s attempt %d: %s", func.key, attempt, last_problem)
-                if attempt <= MAX_WRITE_RETRIES:
+                if attempt <= retries:
                     await asyncio.sleep(2.0)
                     continue
                 self._note_write_error(func, f"{last_problem} nach {attempt} Versuchen")
@@ -325,9 +346,16 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
         rb2 = (await self.client.call(session, session.read_sp_list, [func.read]))[0]
         if rb1 != value or rb2 != value:
             self._note_write_error(func, f"{last_problem}; Rücklesung {rb1}/{rb2}, erwartet {value}")
+            if not self.firmware_verified:
+                # The alias may map to a different register on this firmware: do not try again.
+                self.unverified_write_locked = f"{func.key}: Rücklesung {rb1}/{rb2}, erwartet {value}"
+                _LOGGER.error(
+                    "Write %s on unverified firmware was acknowledged but not applied - all further writes "
+                    "are locked until the integration is reloaded", func.key
+                )
             raise ProxonWriteError(
                 f"{func.key}: Rücklesung ergab {rb1}/{rb2}, erwartet {value} (vorher {current}, "
-                f"{MAX_WRITE_RETRIES + 1} Versuche, je {func.settle:.0f} s)"
+                f"{retries + 1} Versuche, je {func.settle:.0f} s)"
             )
         if attempt > 1:
             _LOGGER.info("Write %s verified after %d attempts", func.key, attempt)
@@ -340,18 +368,41 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
         self.write_error_count += 1
         self.async_update_listeners()  # push the diagnostic sensor immediately
 
-    async def _guard(self, session: NabtoSession, func: WriteFunc, value: int) -> None:
-        """Read firmware and fault words in the write session and apply the policy."""
-        points = list(FAULT_POINTS) + [DP_FIRMWARE_MAIN, DP_PTC_RELAY_A, DP_PTC_RELAY_B]
+    async def _guard(self, session: NabtoSession, items: list[tuple[WriteFunc, int]]) -> None:
+        """Read firmware and fault words in the write session and apply the policy of the first item."""
+        func, value = items[0]
+        points = list(FAULT_POINTS) + [DP_FIRMWARE_MAIN, DP_FIRMWARE_T300, DP_PTC_RELAY_A, DP_PTC_RELAY_B]
         if func.policy in ("t300", "heater"):
-            points += [DP_FIRMWARE_T300, DP_T300_FAULT, *DP_T300_RELAYS]
+            points += [DP_T300_FAULT, *DP_T300_RELAYS]
         vals = await self.client.call(session, session.read_dp_list, points)
         dpv = dict(zip(points, vals))
 
-        if dpv.get(DP_FIRMWARE_MAIN) != EXPECTED_FIRMWARE_MAIN:
-            raise ProxonWriteError(
-                f"Firmware {dpv.get(DP_FIRMWARE_MAIN)} ≠ {EXPECTED_FIRMWARE_MAIN}: Schreiben gesperrt"
-            )
+        fw, fw_t300 = dpv.get(DP_FIRMWARE_MAIN), dpv.get(DP_FIRMWARE_T300)
+        self.firmware_ok = fw == EXPECTED_FIRMWARE_MAIN
+        self.firmware_verified = (fw, fw_t300) in VERIFIED_FIRMWARE
+        if self.firmware_verified:
+            self._write_retries = MAX_WRITE_RETRIES
+        else:
+            shown = f"{firmware_text(fw)} / T300 {firmware_text(fw_t300)}"
+            if not self.allow_unverified:
+                raise ProxonWriteError(
+                    f"Firmware {shown} nicht verifiziert (verifiziert: {firmware_text(EXPECTED_FIRMWARE_MAIN)} / "
+                    f"T300 {firmware_text(EXPECTED_FIRMWARE_T300)}): Schreiben gesperrt. In den Integrationsoptionen "
+                    "kann Schreiben auf eigenes Risiko freigegeben werden."
+                )
+            if self.unverified_write_locked:
+                raise ProxonWriteError(
+                    f"Schreiben gesperrt: ein Write auf nicht verifizierter Firmware wurde nicht bestätigt "
+                    f"({self.unverified_write_locked}). Integration neu laden, um es erneut zu versuchen."
+                )
+            blocked = [f.key for f, _ in items if not allowed_on_unverified_firmware(f)]
+            if blocked:
+                raise ProxonWriteError(
+                    f"{blocked[0]}: auf nicht verifizierter Firmware ({shown}) nicht freigegeben – nur Betriebsart, "
+                    "Lüfterstufe, Raumsoll, Raum-PTC, Kühlfreigabe, Intensivlüftung und Grenzwerte sind möglich"
+                )
+            self._write_retries = 0
+            _LOGGER.warning("Write %s on unverified firmware %s (user opt-in): single attempt, no resend", func.key, shown)
         faults = {p: dpv.get(p, 0) for p in FAULT_POINTS}
         if func.policy == "tolerant":
             bad = {p: v for p, v in faults.items() if v & ~TOLERATED_FAULT_BITS.get(p, 0)}
@@ -362,8 +413,6 @@ class ProxonCoordinator(DataUpdateCoordinator[ProxonData]):
             raise ProxonWriteError(f"Fehlerbits aktiv {bad}: Schreiben gesperrt")
 
         if func.policy in ("t300", "heater"):
-            if dpv.get(DP_FIRMWARE_T300) != EXPECTED_FIRMWARE_T300:
-                raise ProxonWriteError("T300-Firmware unerwartet: Schreiben gesperrt")
             if dpv.get(DP_T300_FAULT):
                 raise ProxonWriteError(f"T300-Fehlerwort {dpv.get(DP_T300_FAULT)}: Schreiben gesperrt")
         if func.policy == "heater" and any(dpv.get(p) for p in DP_T300_RELAYS):

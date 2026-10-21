@@ -1,6 +1,7 @@
 """Proxon FWT – direct LAN (Nabto) control of a Proxon ventilation system."""
 from __future__ import annotations
 
+import inspect
 import logging
 
 import voluptuous as vol
@@ -138,6 +139,14 @@ def get_device_by_identifier(registry: dr.DeviceRegistry, identifier: tuple[str,
     return device if device is not None and entry_id in device.config_entries else None
 
 
+def via_device_kwargs(registry: dr.DeviceRegistry, parent: dr.DeviceEntry, parent_identifier: tuple[str, str]) -> dict:
+    """Link a device to its parent: `via_device_id` on HA >= 2026.8 (where `via_device` is deprecated),
+    the identifier-based `via_device` on older cores (which do not know `via_device_id`)."""
+    if "via_device_id" in inspect.signature(registry.async_get_or_create).parameters:
+        return {"via_device_id": parent.id}
+    return {"via_device": parent_identifier}
+
+
 def main_device_identifier(entry: ConfigEntry) -> tuple[str, str]:
     return (DOMAIN, entry.data[CONF_DEVICE_ID])
 
@@ -170,7 +179,7 @@ def _register_devices(hass: HomeAssistant, entry: ConfigEntry, coordinator: Prox
         manufacturer=MANUFACTURER,
         model="Wochenprogramm Lüftung",
         name="Proxon Zeitprogramm",
-        via_device_id=main.id,
+        **via_device_kwargs(registry, main, main_device_identifier(entry)),
     )
     for day, day_name in enumerate(SCHEDULE_DAY_NAMES):
         registry.async_get_or_create(
@@ -179,7 +188,7 @@ def _register_devices(hass: HomeAssistant, entry: ConfigEntry, coordinator: Prox
             manufacturer=MANUFACTURER,
             model="Tagesprogramm Lüftung (3 Phasen)",
             name=f"Proxon Zeitprogramm {day_name}",
-            via_device_id=schedule.id,
+            **via_device_kwargs(registry, schedule, schedule_device_identifier(entry.data[CONF_DEVICE_ID])),
         )
     areas: dict[str, str] = entry.options.get(CONF_ROOM_AREAS, {})
     for room in coordinator.data.rooms.values():
@@ -191,18 +200,25 @@ def _register_devices(hass: HomeAssistant, entry: ConfigEntry, coordinator: Prox
             manufacturer=MANUFACTURER,
             model="Raumregler (NBE)",
             name=f"Proxon {room.name}",
-            via_device_id=main.id,
+            **via_device_kwargs(registry, main, main_device_identifier(entry)),
         )
         area_id = areas.get(str(room.index))
         if area_id and device.area_id != area_id:
             registry.async_update_device(device.id, area_id=area_id)
 
 
+# Unique ids (without the device prefix) of entities retired in later versions.
+RETIRED_ENTITY_KEYS = (
+    "living_ptc_global",   # 2.8.0 "Elektroheizung Freigabe (ZBP)": duplicate of the living-room PTC switch
+)
+
+
 def _remove_stale_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Remove registry entries left by the pre-2.0 integration (different unique ids)."""
+    """Remove registry entries left by the pre-2.0 integration (different unique ids) or retired since."""
     registry = er.async_get(hass)
+    prefix = f"{entry.data[CONF_DEVICE_ID]}:"
     for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
-        if not entity.unique_id.startswith(f"{entry.data[CONF_DEVICE_ID]}:"):
+        if not entity.unique_id.startswith(prefix) or entity.unique_id[len(prefix):] in RETIRED_ENTITY_KEYS:
             _LOGGER.info("Removing stale entity %s", entity.entity_id)
             registry.async_remove(entity.entity_id)
 

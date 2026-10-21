@@ -22,6 +22,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     MAX_ROOMS,
     NAME_READS_SP,
+    CONF_ALLOW_UNVERIFIED_FIRMWARE,
     CONF_CERT_PEM,
     CONF_DEVICE_ID,
     CONF_EMAIL,
@@ -205,6 +206,9 @@ class ProxonOptionsFlow(OptionsFlow):
                 data={
                     CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],
                     CONF_ROOM_AREAS: areas,
+                    CONF_ALLOW_UNVERIFIED_FIRMWARE: bool(
+                        user_input.get(CONF_ALLOW_UNVERIFIED_FIRMWARE, self.config_entry.options.get(CONF_ALLOW_UNVERIFIED_FIRMWARE, False))
+                    ),
                 },
             )
 
@@ -219,6 +223,13 @@ class ProxonOptionsFlow(OptionsFlow):
                 )
             ),
         }
+        # Opt-in for writes on firmware whose alias mapping is not verified - only offered when the
+        # connected unit actually reports such a firmware (see README, "Firmware-Versionen").
+        if coordinator is not None and coordinator.firmware_verified is False:
+            fields[vol.Optional(
+                CONF_ALLOW_UNVERIFIED_FIRMWARE,
+                default=bool(self.config_entry.options.get(CONF_ALLOW_UNVERIFIED_FIRMWARE, False)),
+            )] = selector.BooleanSelector()
         for r in rooms:
             key = f"area_{r.index}"
             default = current_areas.get(str(r.index))

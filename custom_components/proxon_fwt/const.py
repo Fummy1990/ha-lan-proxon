@@ -40,9 +40,31 @@ CONF_CERT_PEM = "cert_pem"
 CONF_KEY_PEM = "key_pem"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_ROOM_AREAS = "room_areas"  # options: {"<room index>": "<area_id>"}
+CONF_ALLOW_UNVERIFIED_FIRMWARE = "allow_unverified_firmware"  # options: opt-in writes on other firmware
 
 EXPECTED_FIRMWARE_MAIN = 74   # DP0:5  -> "7.4"
 EXPECTED_FIRMWARE_T300 = 35   # DP3:81 -> "3.5"
+# (main, T300) firmware pairs whose write-alias mapping was verified on a real unit. On any other
+# pair writes are blocked unless the user opts in (CONF_ALLOW_UNVERIFIED_FIRMWARE): then every write
+# is a single attempt without automatic resends, and one unconfirmed write locks further writes
+# until the integration is reloaded.
+VERIFIED_FIRMWARE: frozenset[tuple[int, int]] = frozenset({(EXPECTED_FIRMWARE_MAIN, EXPECTED_FIRMWARE_T300)})
+
+
+# With the opt-in, only reversible room/ventilation functions are written on unverified firmware:
+# mode, fan level, room targets/offsets, room PTC, cooling enable, boost (+ duration), zone-2 target,
+# CO2/humidity limits. Hot water / T300 ("t300", "heater"), the weekly schedule and the holiday mode
+# stay blocked until the firmware is on the verified list.
+UNVERIFIED_ALLOWED_POLICIES: frozenset[str] = frozenset({"default", "mode", "tolerant", "cooling", "ptc"})
+
+
+def allowed_on_unverified_firmware(func: "WriteFunc") -> bool:
+    return func.policy in UNVERIFIED_ALLOWED_POLICIES and not func.key.startswith("schedule_")
+
+
+def firmware_text(raw: int | None) -> str:
+    """DP0:5 / DP3:81 as shown in the app ("74" -> "7.4")."""
+    return "?" if raw is None else f"{raw / 10:.1f}"
 
 MAX_ROOMS = 21  # index 0 = Wohnzimmer (master), 1..20 = Nebenräume
 
@@ -89,6 +111,14 @@ DP_T300_FAULT = (3, 61)
 DP_PTC_RELAY_A = (2, 4)
 DP_PTC_RELAY_B = (2, 13)
 DP_T300_RELAYS = ((3, 24), (3, 25), (3, 26), (3, 27))
+
+# ── Units (compat) ──────────────────────────────────────────────────
+try:  # HA >= 2026.x
+    from homeassistant.const import UnitOfRatio as _UnitOfRatio
+
+    PPM = _UnitOfRatio.PARTS_PER_MILLION
+except ImportError:  # older cores
+    from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION as PPM  # noqa: F401
 
 # ── Named functions ──────────────────────────────────────────────────
 @dataclass(frozen=True)
